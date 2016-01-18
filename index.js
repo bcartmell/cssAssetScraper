@@ -62,15 +62,14 @@ function downloadFile(urlStr, savePath, callback) {
   var fileName = fileNameFromPath(urlStr);
 
   savePath = path.resolve(savePath) +'/'+ fileName;
-  console.log('urlStr is', urlStr);
+  console.log('getting', urlStr);
 
   var download = wget.download(urlStr, savePath);
   download.on('error', (err) => {
     console.log(err);
   });
   download.on('end', (output) => {
-    console.log(output);
-    if (callback) callback();
+    if (callback) callback(output);
   });
 }
 
@@ -83,11 +82,11 @@ downloadFile(stylesheetUrl, process.cwd() , () => {
   fs.readFile(filepath,'utf8', (err, data) => {
     if (err) throw err;
     findUrls(data, (err, assetUrls) => {
-      console.log('assetUrls: ', assetUrls)
       assetUrls.forEach( (assetUrl) => {
         assetUrl = cleanUrlString(assetUrl);
         if (isData(assetUrl)) return;
         // If the url string is svg data, no need to try and download
+        //
         downloadFile(assetUrl, savePath);
       });
     });
