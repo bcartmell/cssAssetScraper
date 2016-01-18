@@ -1,0 +1,14 @@
+{
+  "name": "css-asset-scraper",
+  "version": "1.0.0",
+  "description": "Parses CSS files to find all url(..) assets and download them",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brady Cartmell",
+  "license": "ISC",
+  "dependencies": {
+    "wget-improved": "^1.2.1"
+  }
+}
