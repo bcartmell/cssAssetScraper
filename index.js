@@ -5,8 +5,8 @@ const wget = require('wget-improved');
 
 var stylesheetUrl = process.argv[2];
 var stylesheetUrlArr = stylesheetUrl.split('/');
-var baseDomain = stylesheetUrlArr[2];
-var basePath = stylesheetUrlArr[stylesheetUrlArr.length-2];
+var baseDomain = 'http://'+stylesheetUrlArr[2];
+var basePath = stylesheetUrlArr[stylesheetUrlArr.length-2]+'/';
 var savePath = process.argv[3];
 
 function cleanUrlString(urlString) {
@@ -25,8 +25,14 @@ function cleanUrlString(urlString) {
     cleanUrl = 'http:'+cleanUrl;
     break;
   case -1:
-    // relative path - use baseDomain
-    cleanUrl = basePath+cleanUrl;
+    if (cleanUrl[0] === '/') {
+      // using path relative to domain base
+      cleanUrl = baseDomain+cleanUrl;
+    }
+    else {
+      // using path relative to stylesheet
+      cleanUrl = basePath+cleanUrl;
+    }
     break;
   }
 
@@ -79,4 +85,3 @@ downloadFile(stylesheetUrl, process.cwd() , () => {
     });
   });
 });
-
