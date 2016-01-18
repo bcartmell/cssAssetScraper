@@ -1,8 +1,13 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
-const url = require('url');
 const wget = require('wget-improved');
+
+var stylesheetUrl = process.argv[2];
+var stylesheetUrlArr = stylesheetUrl.split('/');
+var baseDomain = stylesheetUrlArr[2];
+var basePath = stylesheetUrlArr[stylesheetUrlArr.length-2];
+var savePath = process.argv[3];
 
 function cleanUrlString(urlString) {
   // Takes a string formatted as 'url(...)' and just the url inside the
@@ -10,6 +15,21 @@ function cleanUrlString(urlString) {
   var cleanUrl;
   cleanUrl = urlString.match(/\((.+)\)/)[1];
   cleanUrl = cleanUrl.replace(/['"]/g,'');
+
+  switch (cleanUrl.search(/\/\//)) {
+  // checking for relative and protocal-independent urls
+  default: // do nothing
+    break;
+  case 0:
+    // protocal-independent url - use http
+    cleanUrl = 'http:'+cleanUrl;
+    break;
+  case -1:
+    // relative path - use baseDomain
+    cleanUrl = basePath+cleanUrl;
+    break;
+  }
+
   return cleanUrl;
 }
 
@@ -23,17 +43,17 @@ function findUrls(input, callback) {
 
 function logData(err, data) {
   if (err) throw err;
-  // console.log(data);
+}
+
+function fileNameFromPath(path) {
+  // takes a path or url and returns just the filename
+  return path.split('/').pop();
 }
 
 function downloadFile(urlStr, savePath, callback) {
-  var fileName = urlStr.split('/').pop();
-  var httpOptions;
-  // console.log('filename is', fileName);
-  // get just the filename with no path;
+  var fileName = fileNameFromPath(urlStr);
 
   savePath = path.resolve(savePath) +'/'+ fileName;
-  // console.log('savePath is', savePath);
   console.log('urlStr is', urlStr);
 
   var download = wget.download(urlStr, savePath);
@@ -42,30 +62,14 @@ function downloadFile(urlStr, savePath, callback) {
   });
   download.on('end', (output) => {
     console.log(output);
+    if (callback) callback();
   });
-  
-
-  /* This seems to be wanting to connect to localhost despite being passed
-   * a url that is publically hosted.  I don't know why, but fuck it, I'll use
-   * wget instead.
-   *
-   * http.get(url.parse(urlStr), (response) => {
-   *   var fullPath = savePath +'/'+ fileName;
-   *   console.log('writing file:', fullPath);
-   *   fs.writeFile(fullPath, response.body, (fullPath) => {
-   *     console.log('wrote file:', fullPath);
-   *   })
-   *   // write the file;
-   * }).on('error', (error) => {
-   *   console.log('Received error', error)
-   * });;
-   */
 }
 
-(function() {
-  var filepath = process.argv[2];
-  var savePath = process.argv[3];
-
+console.log('downloading stylesheet from', stylesheetUrl);
+downloadFile(stylesheetUrl, process.cwd() , () => {
+  var filepath = './'+ fileNameFromPath(stylesheetUrl);
+  console.log('using filepath', filepath);
   fs.readFile(filepath,'utf8', (err, data) => {
     if (err) throw err;
     findUrls(data, (err, assetUrls) => {
@@ -74,7 +78,5 @@ function downloadFile(urlStr, savePath, callback) {
       });
     });
   });
+});
 
-}());
-
-// fs.writeFile('newfile', 'My new file has content!', => console.log('done'));

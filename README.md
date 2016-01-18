@@ -7,6 +7,6 @@ into to specified folder.
 
 Called as so:
 
-    node cssAssetScraper/index.js path/to/css/file folder/to/save/files
+    node cssAssetScraper/index.js url/to/css/file folder/to/save/files
 
-Paths can be relative to Current Working Directory
+folder/to/save/files  can be relative to Current Working Directory
