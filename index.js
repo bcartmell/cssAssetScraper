@@ -16,6 +16,8 @@ function cleanUrlString(urlString) {
   cleanUrl = urlString.match(/\((.+)\)/)[1];
   cleanUrl = cleanUrl.replace(/['"]/g,'');
 
+  if (isData(cleanUrl)) return cleanUrl;
+
   switch (cleanUrl.search(/\/\//)) {
   // checking for relative and protocal-independent urls
   default: // do nothing
@@ -72,15 +74,21 @@ function downloadFile(urlStr, savePath, callback) {
   });
 }
 
-console.log('downloading stylesheet from', stylesheetUrl);
+function isData(assetUrl) {
+  return (assetUrl.search('data:') === 0)
+}
+
 downloadFile(stylesheetUrl, process.cwd() , () => {
   var filepath = './'+ fileNameFromPath(stylesheetUrl);
-  console.log('using filepath', filepath);
   fs.readFile(filepath,'utf8', (err, data) => {
     if (err) throw err;
     findUrls(data, (err, assetUrls) => {
+      console.log('assetUrls: ', assetUrls)
       assetUrls.forEach( (assetUrl) => {
-        downloadFile(cleanUrlString(assetUrl), savePath);
+        assetUrl = cleanUrlString(assetUrl);
+        if (isData(assetUrl)) return;
+        // If the url string is svg data, no need to try and download
+        downloadFile(assetUrl, savePath);
       });
     });
   });
